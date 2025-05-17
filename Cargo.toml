@@ -1,8 +1,28 @@
 [package]
 name = "norph"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Artem Sergeev"]
 edition = "2024"
 publish = false
 
 [dependencies]
+prost = "0.13.5"
+anyhow = "1.0.98"
+config = "0.15.11"
+futures = "0.3.31"
+fastembed = "4.8.0"
+thiserror = "2.0.12"
+env_logger = "0.11.8"
+serde_json = "1.0.140"
+config-types = "1.1.0"
+log = { version = "0.4.27", features = ["std"] }
+tonic = { version = "0.13.1", features = ["gzip"] }
+tokio = { version = "1.45.0", features = ["full"] }
+serde = { version = "1.0.219", features = ["derive"] }
+
+[build-dependencies]
+tonic-build = { version = "0.13.1", features = [] }
+
+[profile.release-lto]
+inherits = "release"
+lto = true
