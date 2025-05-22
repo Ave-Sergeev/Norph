@@ -8,9 +8,9 @@
 
 An example of gRPC server implementation in Rust, designed to convert text into vector representations (embeddings).
 This service can be part of a RAG system, search engine, vector analysis systems, etc.
-It uses an offline model (preloaded), and performs calculations on CPU (without using GPU).
 
-P.S. If you want to enable support for GPU calculations, you can easily do it by making small changes to the project.
+Preloaded local model is used (without connection to external AI APIs).
+Computation (inference) is performed on GPU (if GPU providers are available on your device). Otherwise - on CPU.
 
 ### Models
 

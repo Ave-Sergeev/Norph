@@ -1,6 +1,10 @@
 use crate::error::service_error::ServiceError;
 use anyhow::{Error, Result};
 use fastembed::{InitOptionsUserDefined, TextEmbedding, TokenizerFiles, UserDefinedEmbeddingModel};
+use ort::execution_providers::{
+    CPUExecutionProvider, CUDAExecutionProvider, CoreMLExecutionProvider, DirectMLExecutionProvider, ExecutionProvider,
+    ExecutionProviderDispatch, OpenVINOExecutionProvider, TensorRTExecutionProvider,
+};
 use std::path::Path;
 
 pub struct TextEmbedded {
@@ -36,7 +40,12 @@ impl TextEmbedded {
             tokenizer_config_file,
         };
 
-        let options = InitOptionsUserDefined::new().with_max_length(1024);
+        let execution_providers = Self::get_execution_providers();
+
+        let options = InitOptionsUserDefined::new()
+            .with_max_length(1024)
+            .with_execution_providers(execution_providers);
+
         let udem = UserDefinedEmbeddingModel::new(onnx_model_contents, tokenizer_files);
 
         let model = TextEmbedding::try_new_from_user_defined(udem, options)
@@ -56,6 +65,40 @@ impl TextEmbedded {
             .into_iter()
             .next()
             .ok_or(Error::from(ServiceError::EmbeddingError("Failed to get service from text".to_string())))
+    }
+
+    /// Returns a vector of execution providers, trying various GPU first and falling back to CPU
+    fn get_execution_providers() -> Vec<ExecutionProviderDispatch> {
+        let cpu_ep = CPUExecutionProvider::default();
+        let cuda_ep = CUDAExecutionProvider::default();
+        let core_ml_ep = CoreMLExecutionProvider::default();
+        let direct_ml_ep = DirectMLExecutionProvider::default();
+        let tensor_rt_ep = TensorRTExecutionProvider::default();
+        let open_vino_ep = OpenVINOExecutionProvider::default();
+
+        let mut execution_providers = vec![];
+
+        if let Ok(true) = cuda_ep.is_available() {
+            log::info!("Using CUDA execution provider");
+            execution_providers.push(fastembed::ExecutionProviderDispatch::from(cuda_ep));
+        } else if let Ok(true) = core_ml_ep.is_available() {
+            log::info!("Using CoreML execution provider");
+            execution_providers.push(fastembed::ExecutionProviderDispatch::from(core_ml_ep));
+        } else if let Ok(true) = tensor_rt_ep.is_available() {
+            log::info!("Using TensorRT execution provider");
+            execution_providers.push(fastembed::ExecutionProviderDispatch::from(tensor_rt_ep));
+        } else if let Ok(true) = direct_ml_ep.is_available() {
+            log::info!("Using DirectML execution provider");
+            execution_providers.push(fastembed::ExecutionProviderDispatch::from(direct_ml_ep));
+        } else if let Ok(true) = open_vino_ep.is_available() {
+            log::info!("Using OpenVINO execution provider");
+            execution_providers.push(fastembed::ExecutionProviderDispatch::from(open_vino_ep));
+        } else {
+            log::info!("Using CPU execution provider");
+            execution_providers.push(fastembed::ExecutionProviderDispatch::from(cpu_ep));
+        }
+
+        execution_providers
     }
 }
 

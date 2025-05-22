@@ -19,6 +19,7 @@ log = { version = "0.4.27", features = ["std"] }
 tonic = { version = "0.13.1", features = ["gzip"] }
 tokio = { version = "1.45.0", features = ["full"] }
 serde = { version = "1.0.219", features = ["derive"] }
+ort = { version = "2.0.0-rc.9", features = ["load-dynamic", "download-binaries", "ndarray", "openvino", "directml", "coreml", "tensorrt", "cuda"] }
 
 [build-dependencies]
 tonic-build = { version = "0.13.1", features = [] }
