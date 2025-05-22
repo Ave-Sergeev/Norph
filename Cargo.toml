@@ -2,6 +2,7 @@
 name = "norph"
 version = "1.0.0"
 authors = ["Artem Sergeev"]
+license = "MIT OR Apache-2.0"
 edition = "2024"
 publish = false
 
